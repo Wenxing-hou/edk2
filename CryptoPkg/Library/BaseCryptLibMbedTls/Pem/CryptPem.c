@@ -133,6 +133,72 @@ EcGetPrivateKeyFromPem (
   OUT  VOID         **EcContext
   )
 {
-  ASSERT (FALSE);
-  return FALSE;
+  INT32                 Ret;
+  mbedtls_pk_context    Pk;
+  mbedtls_ecdh_context  *Ecdh;
+  UINT8                 *NewPemData;
+  UINTN                 PasswordLen;
+
+  if ((PemData == NULL) || (EcContext == NULL) || (PemSize > INT_MAX)) {
+    return FALSE;
+  }
+
+  NewPemData = NULL;
+  if (PemData[PemSize - 1] != 0) {
+    NewPemData = AllocateZeroPool (PemSize + 1);
+    if (NewPemData == NULL) {
+      return FALSE;
+    }
+
+    CopyMem (NewPemData, PemData, PemSize + 1);
+    NewPemData[PemSize] = 0;
+    PemData             = NewPemData;
+    PemSize            += 1;
+  }
+
+  mbedtls_pk_init (&Pk);
+
+  if (Password != NULL) {
+    PasswordLen = AsciiStrLen (Password);
+  } else {
+    PasswordLen = 0;
+  }
+
+  Ret = mbedtls_pk_parse_key (&Pk, PemData, PemSize, (CONST UINT8 *)Password, PasswordLen, NULL, NULL);
+
+  if (NewPemData != NULL) {
+    FreePool (NewPemData);
+    NewPemData = NULL;
+  }
+
+  if (Ret != 0) {
+    mbedtls_pk_free (&Pk);
+    return FALSE;
+  }
+
+  if (mbedtls_pk_get_type (&Pk) != MBEDTLS_PK_ECKEY) {
+    mbedtls_pk_free (&Pk);
+    return FALSE;
+  }
+
+  Ecdh = AllocateZeroPool (sizeof (mbedtls_ecdh_context));
+  if (Ecdh == NULL) {
+    mbedtls_pk_free (&Pk);
+    return FALSE;
+  }
+
+  mbedtls_ecdh_init (Ecdh);
+
+  Ret = mbedtls_ecdh_get_params (Ecdh, mbedtls_pk_ec (Pk), MBEDTLS_ECDH_OURS);
+  if (Ret != 0) {
+    mbedtls_ecdh_free (Ecdh);
+    FreePool (Ecdh);
+    mbedtls_pk_free (&Pk);
+    return FALSE;
+  }
+
+  mbedtls_pk_free (&Pk);
+
+  *EcContext = Ecdh;
+  return TRUE;
 }
