@@ -676,8 +676,41 @@ EcGetPublicKeyFromX509 (
   OUT VOID        **EcContext
   )
 {
-  ASSERT (FALSE);
-  return FALSE;
+  mbedtls_x509_crt      Crt;
+  mbedtls_ecdh_context  *Ecdh;
+  INT32                 Ret;
+
+  mbedtls_x509_crt_init (&Crt);
+
+  if (mbedtls_x509_crt_parse_der (&Crt, Cert, CertSize) != 0) {
+    return FALSE;
+  }
+
+  if (mbedtls_pk_get_type (&Crt.pk) != MBEDTLS_PK_ECKEY) {
+    mbedtls_x509_crt_free (&Crt);
+    return FALSE;
+  }
+
+  Ecdh = AllocateZeroPool (sizeof (mbedtls_ecdh_context));
+  if (Ecdh == NULL) {
+    mbedtls_x509_crt_free (&Crt);
+    return FALSE;
+  }
+
+  mbedtls_ecdh_init (Ecdh);
+
+  Ret = mbedtls_ecdh_get_params (Ecdh, mbedtls_pk_ec (Crt.pk), MBEDTLS_ECDH_OURS);
+  if (Ret != 0) {
+    mbedtls_ecdh_free (Ecdh);
+    FreePool (Ecdh);
+    mbedtls_x509_crt_free (&Crt);
+    return FALSE;
+  }
+
+  mbedtls_x509_crt_free (&Crt);
+
+  *EcContext = Ecdh;
+  return TRUE;
 }
 
 /**
