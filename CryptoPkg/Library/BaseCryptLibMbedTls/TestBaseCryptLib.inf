@@ -45,15 +45,15 @@
   Pk/CryptPkcs7VerifyCommon.c
   Pk/CryptPkcs7VerifyBase.c
   Pk/CryptPkcs7VerifyEku.c
-  Pk/CryptDhNull.c
+  Pk/CryptDh.c
   Pk/CryptX509.c
   Pk/CryptAuthenticode.c
   Pk/CryptTs.c
   Pem/CryptPem.c
   Pk/CryptRsaPss.c
   Pk/CryptRsaPssSign.c
-  Bn/CryptBnNull.c
-  Pk/CryptEcNull.c
+  Bn/CryptBn.c
+  Pk/CryptEc.c
   Rand/CryptRand.c
   SysCall/CrtWrapper.c
   SysCall/UnitTestHostCrtWrapper.c
