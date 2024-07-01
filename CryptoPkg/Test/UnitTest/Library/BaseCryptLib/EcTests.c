@@ -254,11 +254,12 @@ TestVerifyEcBasic (
     Status = EcPointIsOnCurve (Group, PointRes, NULL);
     UT_ASSERT_TRUE (Status);
 
-    // Point Order * G should at infinity
+    // Point (BnOrder/2)*G should on curve
+    BigNumRShift(BnOrder, 1, BnOrder);
     Status = EcPointMul (Group, PointRes, Point1, BnOrder, NULL);
     UT_ASSERT_TRUE (Status);
 
-    Status = EcPointIsAtInfinity (Group, PointRes);
+    Status = EcPointIsOnCurve (Group, PointRes, NULL);
     UT_ASSERT_TRUE (Status);
 
     // -(-G) == G
